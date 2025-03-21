@@ -14,6 +14,7 @@ if (fs.existsSync(tasksFilePath)) {
 
 // Función para guardar tareas en el archivo JSON
 function saveTasks() {
+  console.log("Guardando tareas:", tasks);
   fs.writeFileSync(tasksFilePath, JSON.stringify(tasks, null, 2), 'utf-8');
 }
 
@@ -27,27 +28,29 @@ router.post('/api/tasks', (req, res) => {
   const newTask = {
     id: tasks.length + 1,
     title: req.body.title,
-    completed: req.body.completed || false,
+    description: req.body.description || '',
+    completed: false,
+    createdAt: new Date(),
   };
   tasks.push(newTask);
-  saveTasks(); // Guardar en el archivo JSON
+  saveTasks();
   res.status(201).json(newTask);
 });
 
-// Actualizar una tarea existente
-router.put('/api/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const task = tasks.find((t) => t.id === taskId);
 
-  if (!task) {
+// Actualizar una tarea
+router.put('/api/tasks/:id', (req, res) => {
+  const taskId = req.params.id;
+  const updatedTask = req.body;
+
+  const taskIndex = tasks.findIndex(task => task.id === taskId);
+  if (taskIndex === -1) {
     return res.status(404).json({ error: 'Tarea no encontrada' });
   }
 
-  task.title = req.body.title || task.title;
-  task.completed = req.body.completed || task.completed;
-  saveTasks(); // Guardar en el archivo JSON
-
-  res.json(task);
+  tasks[taskIndex] = { ...tasks[taskIndex], ...updatedTask };
+  saveTasks();
+  res.json(tasks[taskIndex]);
 });
 
 // Eliminar una tarea
