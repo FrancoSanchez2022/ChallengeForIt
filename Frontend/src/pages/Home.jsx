@@ -1,13 +1,13 @@
 import React from 'react';
 import TaskList from '../components/TaskList';
 
-const Home = () => {
-  return (
-    <div>
-      <h1></h1>
-      <TaskList />
-    </div>
-  );
-};
+const Home = () => (
+  <div className="container">
+    <header>
+      <h1>Lista de Tareas</h1>
+    </header>
+    <TaskList />
+  </div>
+);
 
 export default Home;

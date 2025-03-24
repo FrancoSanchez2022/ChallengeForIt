@@ -1,26 +1,22 @@
 import React, { useState } from 'react';
 
-const TaskForm = ({ onSubmit }) => {
-  // Estados para manejar los valores del formulario
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
+const TaskForm = ({ onSubmit, initialTask, onCancel }) => {
+  const [title, setTitle] = useState(initialTask?.title || '');
+  const [description, setDescription] = useState(initialTask?.description || '');
 
-  // Función que se ejecuta cuando el usuario envía el formulario
   const handleSubmit = (e) => {
-    e.preventDefault(); // Evita que el formulario se recargue
-
-    // Crea un objeto con los datos de la nueva tarea
-    const newTask = {
+    e.preventDefault();
+    onSubmit({
+      ...(initialTask || {}),
       title,
       description,
-      completed: false, // Por defecto, la tarea no está completada
-    };
-
-    // Llama a la función `onSubmit` que recibe como prop
-    onSubmit(newTask);
-    // Limpia los campos del formulario después de enviar
-    setTitle('');
-    setDescription('');
+      completed: initialTask?.completed || false
+    });
+    
+    if (!initialTask) {
+      setTitle('');
+      setDescription('');
+    }
   };
 
   return (
@@ -29,16 +25,24 @@ const TaskForm = ({ onSubmit }) => {
         type="text"
         placeholder="Título de la tarea"
         value={title}
-        onChange={(e) => setTitle(e.target.value)} // Actualiza el estado `title`
-        required 
+        onChange={(e) => setTitle(e.target.value)}
+        required
       />
       <textarea
         placeholder="Descripción"
         value={description}
-        onChange={(e) => setDescription(e.target.value)} // Actualiza el estado `description`
-        required 
+        onChange={(e) => setDescription(e.target.value)}
       />
-       <button type="submit">➕ Agregar tarea</button>
+      <div className="form-actions">
+        {initialTask && (
+          <button type="button" onClick={onCancel}>
+            Cancelar
+          </button>
+        )}
+        <button type="submit">
+          {initialTask ? 'Actualizar tarea' : '➕ Agregar tarea'}
+        </button>
+      </div>
     </form>
   );
 };

@@ -4,51 +4,43 @@ import TaskItem from './TaskItem';
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
+  const [editingTask, setEditingTask] = useState(null);
 
-  // Obtener las tareas de la API
   useEffect(() => {
-    console.log("Tareas actualizadas:", tasks);
     fetch(`${import.meta.env.VITE_API_URL}/api/tasks`)
       .then(response => response.json())
       .then(data => setTasks(data))
       .catch(error => console.error('Error:', error));
   }, []);
 
-  // Función para agregar una nueva tarea
   const handleAddTask = (newTask) => {
     fetch(`${import.meta.env.VITE_API_URL}/api/tasks`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(newTask),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTask)
     })
       .then(response => response.json())
-      .then(data => {
-        console.log("Respuesta del backend:", data)
-        setTasks([...tasks, data]); // Agrega la nueva tarea a la lista
-      })
+      .then(data => setTasks([...tasks, data]))
       .catch(error => console.error('Error:', error));
   };
-// Función para eliminar una tarea
+
   const handleDeleteTask = (taskId) => {
     fetch(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     })
-      .then(() => {
-        setTasks(tasks.filter(task => task.id !== taskId)); // Elimina la tarea de la lista
-      })
+      .then(() => setTasks(tasks.filter(task => task.id !== taskId)))
       .catch(error => console.error('Error:', error));
   };
-// Función para marcar una tarea como completada/pendiente
+
   const handleToggleComplete = (taskId) => {
     const task = tasks.find(task => task.id === taskId);
     fetch(`${import.meta.env.VITE_API_URL}/api/tasks/${taskId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ completed: !task.completed }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        ...task,
+        completed: !task.completed
+      })
     })
       .then(response => response.json())
       .then(updatedTask => {
@@ -57,20 +49,44 @@ const TaskList = () => {
       .catch(error => console.error('Error:', error));
   };
 
+  const handleUpdateTask = (updatedTask) => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/tasks/${updatedTask.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedTask)
+    })
+      .then(response => response.json())
+      .then(data => {
+        setTasks(tasks.map(task => task.id === data.id ? data : task));
+        setEditingTask(null);
+      })
+      .catch(error => console.error('Error:', error));
+  };
+
   return (
     <div>
-      <h1>Lista de Tareas</h1>
-      <ul className="task-list">
-        {tasks.map(task => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onDelete={handleDeleteTask}
-            onToggleComplete={handleToggleComplete}
-          />
-        ))}
-      </ul>
-      <TaskForm onSubmit={handleAddTask} />
+      {editingTask ? (
+        <TaskForm 
+          onSubmit={handleUpdateTask}
+          initialTask={editingTask}
+          onCancel={() => setEditingTask(null)}
+        />
+      ) : (
+        <>
+          <TaskForm onSubmit={handleAddTask} />
+          <div className="task-list">
+            {tasks.map(task => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                onDelete={handleDeleteTask}
+                onToggleComplete={handleToggleComplete}
+                onEdit={setEditingTask}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 };
